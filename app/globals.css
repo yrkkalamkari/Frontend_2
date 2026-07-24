@@ -1,0 +1,41 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: #FBF3E7;
+  color: #7B2632;
+}
+
+::-webkit-scrollbar {
+  height: 6px;
+  width: 6px;
+}
+::-webkit-scrollbar-thumb {
+  background: #C89B3C55;
+  border-radius: 999px;
+}
+
+.line-clamp-1 {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Small repeating diamond pattern along the top edge, evoking the woven
+   border trim seen on real Kalamkari textiles. Used above USPStrip etc. */
+.ornamental-border {
+  border-top: 3px solid #C89B3C;
+  background-image: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 6px,
+    rgba(200, 155, 60, 0.15) 6px,
+    rgba(200, 155, 60, 0.15) 7px
+  );
+}
