@@ -1,6 +1,8 @@
 import Link from "next/link";
+import Image from "next/image";
 import Divider from "@/components/Divider";
 import USPStrip from "@/components/USPStrip";
+import LazyVideo from "@/components/LazyVideo";
 
 export const metadata = {
   title: "About — YRK Collections",
@@ -8,10 +10,10 @@ export const metadata = {
 };
 
 const FEATURES = [
-  { icon: "🌿", label: "Natural Dyes" },
-  { icon: "✋", label: "Handcrafted" },
-  { icon: "❤️", label: "Heritage Art" },
-  { icon: "♻️", label: "Sustainable" },
+  { icon: "/icons/NaturalColors.png", label: "Natural Dyes" },
+  { icon: "/icons/HandPrinted.png", label: "Handcrafted" },
+  { icon: "/icons/heritage.png", label: "Heritage Art" },
+  { icon: "/icons/sustainable.png", label: "Sustainable" },
 ];
 
 export default function AboutPage() {
@@ -36,18 +38,29 @@ export default function AboutPage() {
           <div className="grid grid-cols-4 gap-4 mt-10">
             {FEATURES.map((f) => (
               <div key={f.label} className="flex flex-col items-center gap-2 text-center">
-                <span className="w-14 h-14 rounded-full border border-brown/25 flex items-center justify-center text-xl">
-                  {f.icon}
-                </span>
+                <div className="relative w-14 h-14">
+                  <Image
+                    src={f.icon}
+                    alt={f.label}
+                    fill
+                    className="object-contain"
+                  />
+                </div>
                 <span className="text-xs font-medium text-brown/70">{f.label}</span>
               </div>
             ))}
           </div>
         </div>
 
-        <div className="rounded-xl2 overflow-hidden shadow-soft aspect-[4/5] bg-gradient-to-br from-gold/30 to-brown/30 flex items-center justify-center">
-          {/* Replace with a real photo of block-print tools and dyes */}
-          <span className="font-display text-brown/40">Craft materials</span>
+        <div className="rounded-xl2 overflow-hidden shadow-soft aspect-[4/5] bg-gradient-to-br from-gold/30 to-brown/30">
+          <LazyVideo
+            src="/About.mp4"
+            className="w-full h-full object-cover"
+            controls
+            autoPlay
+            muted
+            loop
+          />
         </div>
       </section>
 
