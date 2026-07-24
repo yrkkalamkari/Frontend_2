@@ -64,11 +64,12 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <section id="our-story" className="bg-beige scroll-mt-24">
-        <div className="max-w-4xl mx-auto px-6 py-16 text-center">
-          <h2 className="font-display text-2xl sm:text-3xl text-brown mb-4">Our story</h2>
+      <section id="our-story" className="scroll-mt-24 relative bg-cover bg-center bg-no-repeat" style={{ backgroundImage: 'url(/Categories/Black_bluish_Kalamkari.jpeg)' }}>
+        <div className="absolute inset-0 bg-black/70"></div>
+        <div className="max-w-4xl mx-auto px-6 py-16 text-center relative z-10">
+          <h2 className="font-display text-2xl sm:text-3xl text-cream mb-4">Our story</h2>
           <Divider className="mb-6" />
-          <p className="text-brown/70 leading-relaxed max-w-2xl mx-auto">
+          <p className="text-cream/90 leading-relaxed max-w-2xl mx-auto">
             YRK Collections started with a simple idea: bring genuine, hand-crafted Kalamkari
             textiles directly from artisan workshops to your wardrobe. Every saree, dupatta, and
             length of fabric we sell is sourced directly from printing clusters where this craft
