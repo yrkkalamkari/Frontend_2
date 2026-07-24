@@ -10,8 +10,8 @@ import { api } from "@/lib/api";
 async function getHomeData() {
   const [categoriesResult, bestSellersResult, recentResult] = await Promise.all([
     api.categories(),
-    api.products({ limit: 5, sort: "price_desc" }),
-    api.products({ limit: 4, sort: "newest" }),
+    api.products({ limit: 5, sort: "price_desc" }, { cache: "no-store" }),
+    api.products({ limit: 4, sort: "newest" }, { cache: "no-store" }),
   ]);
 
   const categories = Array.isArray(categoriesResult)
