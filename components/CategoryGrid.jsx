@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
+import { useCategories } from "@/lib/hooks";
 
 const categoryImages = {
   saree: "/Categories/Sarees_2.png",
@@ -16,14 +17,18 @@ const categoryImages = {
 
 export default function CategoryGrid({ categories = [] }) {
   const [imageErrors, setImageErrors] = useState({});
+  const { categories: fetchedCategories, isLoading } = useCategories();
 
-  const safeCategories = Array.isArray(categories)
+  const safeCategories = Array.isArray(categories) && categories.length
     ? categories
-    : Array.isArray(categories?.categories)
-    ? categories.categories
+    : Array.isArray(fetchedCategories)
+    ? fetchedCategories
     : [];
 
-  if (!safeCategories.length) return null;
+  if (!safeCategories.length) {
+    if (isLoading) return null;
+    return null;
+  }
 
   const handleImageError = (id) => {
     console.log("Image failed:", id);

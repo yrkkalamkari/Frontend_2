@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { api } from "@/lib/api";
+import { mutate as globalMutate } from "swr";
 import { formatINR } from "@/lib/format";
 import AdminGuard from "@/components/AdminGuard";
 
@@ -129,6 +130,13 @@ function AdminProducts() {
       const created = await api.createCategory({ name: newCategoryName, imageUrl: newCategoryImageUrl || undefined });
       // update local state immediately so admin form shows the new category without requiring a server restart
       setCategories((prev) => [...prev, created]);
+      // update SWR cache so other client-side components (CategoryGrid) see the new category instantly
+      try {
+        globalMutate("categories", (current) => {
+          const arr = Array.isArray(current) ? current : Array.isArray(current?.categories) ? current.categories : [];
+          return [...arr, created];
+        }, false);
+      } catch (e) {}
       setNewCategoryName("");
       setNewCategoryImageUrl("");
       setSuccess("Category added successfully.");

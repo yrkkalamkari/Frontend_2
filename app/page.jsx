@@ -8,33 +8,26 @@ import FeaturesAndPromo from "@/components/FeaturesAndPromo";
 import { api } from "@/lib/api";
 
 async function getHomeData() {
-  const [categoriesResult, bestSellersResult, recentResult] = await Promise.all([
-    api.categories(),
+  const [bestSellersResult, recentResult] = await Promise.all([
     api.products({ limit: 5, sort: "price_desc" }, { cache: "no-store" }),
     api.products({ limit: 4, sort: "newest" }, { cache: "no-store" }),
   ]);
 
-  const categories = Array.isArray(categoriesResult)
-    ? categoriesResult
-    : Array.isArray(categoriesResult?.categories)
-      ? categoriesResult.categories
-      : [];
-
   const bestSellers = Array.isArray(bestSellersResult?.products) ? bestSellersResult.products.filter(Boolean) : [];
   const recent = Array.isArray(recentResult?.products) ? recentResult.products.filter(Boolean) : [];
 
-  return { categories, bestSellers, recent };
+  return { bestSellers, recent };
 }
 
 export default async function HomePage() {
-  const { categories, bestSellers, recent } = await getHomeData();
+  const { bestSellers, recent } = await getHomeData();
 
   return (
     <>
       <Hero />
       <USPStrip />
       <TrustBadges />
-      <CategoryGrid categories={categories} />
+      <CategoryGrid />
 
       <section className="max-w-7xl mx-auto px-6 py-10">
         <h2 className="font-display text-2xl sm:text-3xl text-brown mb-1 text-center">Best sellers</h2>
