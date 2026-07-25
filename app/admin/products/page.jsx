@@ -15,6 +15,7 @@ function AdminProducts() {
   const [newCategoryName, setNewCategoryName] = useState("");
   const [uploadingFor, setUploadingFor] = useState(null);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   async function loadAll() {
     const [prods, cats] = await Promise.all([api.adminProducts(), api.categories()]);
@@ -27,6 +28,7 @@ function AdminProducts() {
   async function handleSubmit(e) {
     e.preventDefault();
     setError("");
+    setSuccess("");
     try {
       const payload = {
         ...form,
@@ -36,8 +38,10 @@ function AdminProducts() {
       };
       if (editingId) {
         await api.updateProduct(editingId, payload);
+        setSuccess("Product updated successfully.");
       } else {
         await api.createProduct(payload);
+        setSuccess("Product added successfully.");
       }
       setForm(EMPTY_FORM);
       setEditingId(null);
@@ -93,9 +97,16 @@ function AdminProducts() {
 
   async function handleAddCategory() {
     if (!newCategoryName.trim()) return;
-    await api.createCategory({ name: newCategoryName });
-    setNewCategoryName("");
-    await loadAll();
+    setError("");
+    setSuccess("");
+    try {
+      await api.createCategory({ name: newCategoryName });
+      setNewCategoryName("");
+      await loadAll();
+      setSuccess("Category added successfully.");
+    } catch (err) {
+      setError(err.message);
+    }
   }
 
   return (
@@ -114,6 +125,8 @@ function AdminProducts() {
           Add category
         </button>
       </div>
+      {success && <p className="mb-4 text-green-600 text-sm">{success}</p>}
+      {error && <p className="mb-4 text-red-600 text-sm">{error}</p>}
 
       {/* Product form */}
       <form onSubmit={handleSubmit} className="bg-white rounded-xl2 shadow-softer p-6 mb-10 grid sm:grid-cols-2 gap-4">
