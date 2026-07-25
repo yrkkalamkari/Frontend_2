@@ -19,15 +19,31 @@ function AdminProducts() {
   const [success, setSuccess] = useState("");
 
   async function loadAll() {
-    const [prods, cats] = await Promise.all([api.adminProducts(), api.categories()]);
-    setProducts(prods);
-    setCategories(cats);
+    try {
+      const [prods, cats] = await Promise.all([api.adminProducts(), api.categories()]);
+      setProducts(prods);
+      const normalized = Array.isArray(cats)
+        ? cats
+        : Array.isArray(cats?.categories)
+        ? cats.categories
+        : [];
+      setCategories(normalized);
+    } catch (err) {
+      setError(err.message);
+      setProducts([]);
+      setCategories([]);
+    }
   }
 
   async function refreshCategories() {
     try {
       const cats = await api.categories();
-      setCategories(cats);
+      const normalized = Array.isArray(cats)
+        ? cats
+        : Array.isArray(cats?.categories)
+        ? cats.categories
+        : [];
+      setCategories(normalized);
     } catch (err) {
       setError(err.message);
     }
