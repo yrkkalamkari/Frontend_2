@@ -126,11 +126,11 @@ function AdminProducts() {
     setError("");
     setSuccess("");
     try {
-      await api.createCategory({ name: newCategoryName, imageUrl: newCategoryImageUrl || undefined });
+      const created = await api.createCategory({ name: newCategoryName, imageUrl: newCategoryImageUrl || undefined });
+      // update local state immediately so admin form shows the new category without requiring a server restart
+      setCategories((prev) => [...prev, created]);
       setNewCategoryName("");
       setNewCategoryImageUrl("");
-      await refreshCategories();
-      await loadAll();
       setSuccess("Category added successfully.");
     } catch (err) {
       setError(err.message);
