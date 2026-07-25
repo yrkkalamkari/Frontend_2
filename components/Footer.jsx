@@ -19,7 +19,7 @@ export default function Footer() {
           <ul className="space-y-2">
             <li><Link href="/orders">Track order</Link></li>
             <li><Link href="/about#sustainability">Policies</Link></li>
-            <li>yrkcollection@gmail.com</li>
+            <li>yrkkalamkari@gmail.com</li>
           </ul>
           <h4 className="text-cream font-semibold mb-3 mt-6">About us</h4>
           <ul className="space-y-2">
@@ -30,7 +30,7 @@ export default function Footer() {
         </div>
 
         <div className="flex md:flex-col items-start gap-4">
-          <a href="#" aria-label="Instagram" className="w-9 h-9 rounded-full border border-cream/30 flex items-center justify-center hover:bg-gold hover:border-gold transition-colors"><Instagram size={16} /></a>
+          <a href="https://www.instagram.com/yrk_collections?igsh=N2FjMnBvaW1lMzls" target="_blank" rel="noreferrer" aria-label="Instagram" className="w-9 h-9 rounded-full border border-cream/30 flex items-center justify-center hover:bg-gold hover:border-gold transition-colors"><Instagram size={16} /></a>
           <a href="#" aria-label="Facebook" className="w-9 h-9 rounded-full border border-cream/30 flex items-center justify-center hover:bg-gold hover:border-gold transition-colors"><Facebook size={16} /></a>
           <a href="#" aria-label="Twitter" className="w-9 h-9 rounded-full border border-cream/30 flex items-center justify-center hover:bg-gold hover:border-gold transition-colors"><Twitter size={16} /></a>
         </div>

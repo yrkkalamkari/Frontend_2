@@ -39,10 +39,14 @@ export default async function HomePage() {
       <section className="max-w-7xl mx-auto px-6 py-10">
         <h2 className="font-display text-2xl sm:text-3xl text-brown mb-1 text-center">Best sellers</h2>
         <p className="text-center text-brown/50 text-sm mb-8">{bestSellers.length} products</p>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6">
-          {bestSellers.map((p, i) => (
-            <ProductCard key={p.id} product={p} priority={i < 4} />
-          ))}
+        <div className="overflow-x-auto pb-4 sm:px-2 lg:px-0">
+          <div className="flex gap-4 min-w-max">
+            {bestSellers.map((p, i) => (
+              <div key={p.id} className="min-w-[260px] flex-shrink-0">
+                <ProductCard product={p} priority={i < 4} />
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 

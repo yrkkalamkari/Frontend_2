@@ -11,7 +11,7 @@ export default function ContactPage() {
         Questions about an order, a custom piece, or wholesale inquiries — we'd love to hear from you.
       </p>
       <div className="space-y-2 text-brown">
-        <p><a href="mailto:yrkcollection@gmail.com" className="hover:text-gold">yrkcollection@gmail.com</a></p>
+        <p><a href="mailto:yrkkalamkari@gmail.com" className="hover:text-gold">yrkkalamkari@gmail.com</a></p>
         <p><a href="tel:+910000000000" className="hover:text-gold">+91 00000 00000</a></p>
       </div>
     </div>

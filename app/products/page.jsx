@@ -111,7 +111,29 @@ function ProductListing() {
 
         {/* Products */}
         <div>
-          <div className="flex justify-end mb-6">
+          <div className="mb-6 space-y-4">
+          {categories.length > 0 && (
+            <div className="overflow-x-auto pb-2">
+              <div className="inline-flex gap-2">
+                <button
+                  onClick={() => updateParam("category", "")}
+                  className={`rounded-full px-4 py-2 text-sm font-medium ${!category ? "bg-brown text-cream" : "bg-brown/10 text-brown"}`}
+                >
+                  All
+                </button>
+                {categories.map((c) => (
+                  <button
+                    key={c.id}
+                    onClick={() => updateParam("category", c.slug)}
+                    className={`rounded-full px-4 py-2 text-sm font-medium ${category === c.slug ? "bg-brown text-cream" : "bg-brown/10 text-brown"}`}
+                  >
+                    {c.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+          <div className="flex justify-end">
             <select
               value={sort}
               onChange={(e) => updateParam("sort", e.target.value)}
@@ -122,6 +144,7 @@ function ProductListing() {
               <option value="price_desc">Price: high to low</option>
             </select>
           </div>
+        </div>
 
           {isLoading ? (
             <ProductGridSkeleton count={9} />

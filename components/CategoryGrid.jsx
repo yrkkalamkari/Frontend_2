@@ -8,7 +8,6 @@ const categoryImages = {
   saree: "/Categories/Sarees_2.png",
   sarees: "/Categories/Sarees_2.png",
   sari: "/Categories/Sarees.png",
-  sari: "/Categories/Sarees.png",
   dupatta: "/Categories/Duppatas.png",
   dupattas: "/Categories/Duppatas.png",
   duppata: "/Categories/Duppatas.png",
@@ -36,9 +35,10 @@ export default function CategoryGrid({ categories = [] }) {
     const name = category.name?.trim().toLowerCase();
 
     return (
+      category.imageUrl ||
       categoryImages[slug] ||
       categoryImages[name] ||
-      "/Categories/Sarees_2.png" // default image
+      "/Categories/Sarees_2.png"
     );
   };
 
@@ -48,7 +48,7 @@ export default function CategoryGrid({ categories = [] }) {
         Featured Categories
       </h2>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-5">
+      <div className="flex gap-4 overflow-x-auto pb-4 sm:px-2 lg:px-0">
         {safeCategories.map((c) => {
           const imageUrl = getImage(c);
 
@@ -56,7 +56,7 @@ export default function CategoryGrid({ categories = [] }) {
             <Link
               key={c.id}
               href={`/products?category=${c.slug}`}
-              className="group relative aspect-[3/4] rounded-xl2 overflow-hidden shadow-softer"
+              className="group relative min-w-[220px] flex-shrink-0 aspect-[3/4] rounded-xl2 overflow-hidden shadow-softer"
             >
               {!imageErrors[c.id] && (
                 <Image

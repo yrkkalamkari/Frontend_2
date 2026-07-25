@@ -13,6 +13,7 @@ function AdminProducts() {
   const [form, setForm] = useState(EMPTY_FORM);
   const [editingId, setEditingId] = useState(null);
   const [newCategoryName, setNewCategoryName] = useState("");
+  const [newCategoryImageUrl, setNewCategoryImageUrl] = useState("");
   const [uploadingFor, setUploadingFor] = useState(null);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -21,6 +22,15 @@ function AdminProducts() {
     const [prods, cats] = await Promise.all([api.adminProducts(), api.categories()]);
     setProducts(prods);
     setCategories(cats);
+  }
+
+  async function refreshCategories() {
+    try {
+      const cats = await api.categories();
+      setCategories(cats);
+    } catch (err) {
+      setError(err.message);
+    }
   }
 
   useEffect(() => { loadAll(); }, []);
@@ -100,8 +110,10 @@ function AdminProducts() {
     setError("");
     setSuccess("");
     try {
-      await api.createCategory({ name: newCategoryName });
+      await api.createCategory({ name: newCategoryName, imageUrl: newCategoryImageUrl || undefined });
       setNewCategoryName("");
+      setNewCategoryImageUrl("");
+      await refreshCategories();
       await loadAll();
       setSuccess("Category added successfully.");
     } catch (err) {
@@ -114,11 +126,17 @@ function AdminProducts() {
       <h1 className="font-display text-2xl text-brown mb-8">Manage products</h1>
 
       {/* Category quick-add */}
-      <div className="flex gap-2 mb-8">
+      <div className="flex flex-col sm:flex-row gap-2 mb-8">
         <input
           value={newCategoryName}
           onChange={(e) => setNewCategoryName(e.target.value)}
           placeholder="New category name"
+          className="px-3 py-2 rounded-lg border border-brown/10 text-sm"
+        />
+        <input
+          value={newCategoryImageUrl}
+          onChange={(e) => setNewCategoryImageUrl(e.target.value)}
+          placeholder="Category image URL (optional)"
           className="px-3 py-2 rounded-lg border border-brown/10 text-sm"
         />
         <button onClick={handleAddCategory} className="bg-beige text-brown px-4 py-2 rounded-lg text-sm font-semibold">
