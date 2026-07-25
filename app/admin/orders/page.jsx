@@ -75,7 +75,7 @@ function AdminOrdersList() {
                 <p className="text-sm text-brown/60 mt-1">
                   {o.address.line1}, {o.address.city}, {o.address.state} {o.address.pincode}
                 </p>
-                <p className="text-sm text-brown/50 mt-1">{o.items.length} item(s)</p>
+                <p className="text-sm text-brown/50 mt-1">{o._count.items} item(s)</p>
               </div>
               <div className="text-right">
                 <p className="font-semibold text-brown">{formatINR(o.total)}</p>

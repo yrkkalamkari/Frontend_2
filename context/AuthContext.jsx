@@ -29,16 +29,31 @@ export function AuthProvider({ children }) {
     hydrate();
   }, [hydrate]);
 
-  // Called with the ID token Google's button hands back
-  async function loginWithGoogle(idToken) {
-    const { token } = await api.googleLogin(idToken);
+  // Called with the ID token Google's button hands back.
+  // We update the UI immediately with the Google profile and fetch the full
+  // profile in the background so the login feels responsive.
+  const loginWithGoogle = useCallback(async (idToken) => {
+    const { token, user: googleUser } = await api.googleLogin(idToken);
     localStorage.setItem("kalamkari_token", token);
-    // One call gets everything (addresses, cart, wishlist) — avoids a second
-    // redundant render with the "basic" user before this resolves.
-    const full = await api.me();
-    setUser(full);
-    return full;
-  }
+
+    const immediateUser = {
+      ...googleUser,
+      addresses: [],
+      cart: [],
+      wishlist: [],
+    };
+    setUser(immediateUser);
+
+    void api.me()
+      .then((full) => {
+        if (full) setUser(full);
+      })
+      .catch(() => {
+        // Keep the immediately available Google profile if the full profile fetch fails.
+      });
+
+    return immediateUser;
+  }, []);
 
   function logout() {
     localStorage.removeItem("kalamkari_token");
