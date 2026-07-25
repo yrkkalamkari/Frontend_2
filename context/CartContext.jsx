@@ -10,6 +10,7 @@ export function CartProvider({ children }) {
   const [cart, setCart] = useState([]);
   const [wishlist, setWishlist] = useState([]);
   const [flying, setFlying] = useState(false); // triggers the "fly to cart" micro-animation
+  const [toastMessage, setToastMessage] = useState("");
 
   const refreshCart = useCallback(async () => {
     if (!user) return setCart([]);
@@ -57,6 +58,8 @@ export function CartProvider({ children }) {
     try {
       await api.addToCart(product.id, qty);
       await refreshCart(); // reconcile with the server-assigned id/stock truth
+      setToastMessage(`${product.name} added to cart`);
+      setTimeout(() => setToastMessage(""), 2500);
     } catch (err) {
       await refreshCart(); // roll back to server state on failure
       throw err;
@@ -110,6 +113,10 @@ export function CartProvider({ children }) {
     setCart([]);
   }
 
+  function clearToast() {
+    setToastMessage("");
+  }
+
   const cartCount = cart.reduce((sum, item) => sum + item.qty, 0);
   const cartTotal = cart.reduce((sum, item) => {
     const price = parseFloat(item.product.discountPrice ?? item.product.price);
@@ -119,9 +126,9 @@ export function CartProvider({ children }) {
   return (
     <CartContext.Provider
       value={{
-        cart, wishlist, cartCount, cartTotal, flying,
+        cart, wishlist, cartCount, cartTotal, flying, toastMessage,
         addToCart, updateQty, removeFromCart, toggleWishlist,
-        refreshCart, refreshWishlist, emptyCartLocally,
+        refreshCart, refreshWishlist, emptyCartLocally, clearToast,
       }}
     >
       {children}

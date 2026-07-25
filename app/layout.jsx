@@ -7,6 +7,7 @@ import Navbar from "@/components/Navbar";
 import AnnouncementBar from "@/components/AnnouncementBar";
 import Footer from "@/components/Footer";
 import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
+import CartNotificationClient from "@/components/CartNotificationClient";
 
 const playfair = Playfair_Display({ subsets: ["latin"], variable: "--font-playfair", weight: ["500", "600", "700"] });
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter", weight: ["400", "500", "600"] });
@@ -31,6 +32,7 @@ export default function RootLayout({ children }) {
               <AnnouncementBar />
               <Navbar />
               <main className="min-h-screen">{children}</main>
+              <CartNotificationClient />
               <Footer />
               <ServiceWorkerRegister />
             </CartProvider>
