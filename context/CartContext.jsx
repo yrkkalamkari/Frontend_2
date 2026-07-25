@@ -1,5 +1,5 @@
 "use client";
-import { createContext, useContext, useEffect, useState, useCallback } from "react";
+import { createContext, useContext, useEffect, useState, useCallback, useRef } from "react";
 import { api } from "@/lib/api";
 import { useAuth } from "./AuthContext";
 
@@ -38,6 +38,8 @@ export function CartProvider({ children }) {
 
   // Takes the full product object (not just an id) so the UI can update
   // instantly without waiting on the network round trip.
+  const toastTimeout = useRef(null);
+
   async function addToCart(product, qty = 1) {
     if (!user) return { requireLogin: true };
 
@@ -55,11 +57,13 @@ export function CartProvider({ children }) {
       return [...prev, { id: `optimistic-${product.id}`, productId: product.id, qty, product }];
     });
 
+    setToastMessage(`${product.name} added to cart`);
+    if (toastTimeout.current) clearTimeout(toastTimeout.current);
+    toastTimeout.current = setTimeout(() => setToastMessage(""), 2500);
+
     try {
       await api.addToCart(product.id, qty);
-      await refreshCart(); // reconcile with the server-assigned id/stock truth
-      setToastMessage(`${product.name} added to cart`);
-      setTimeout(() => setToastMessage(""), 2500);
+      refreshCart(); // reconcile with the server-assigned id/stock truth, run in background
     } catch (err) {
       await refreshCart(); // roll back to server state on failure
       throw err;
