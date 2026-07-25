@@ -70,6 +70,7 @@ export default function OrderDetailPage() {
         <p className="text-sm text-brown/60">
           {order.address.line1}, {order.address.line2 && `${order.address.line2}, `}{order.address.city}, {order.address.state} {order.address.pincode}
         </p>
+        {order.address.phone && <p className="text-sm text-brown/60 mt-1">Phone: {order.address.phone}</p>}
       </div>
     </div>
   );

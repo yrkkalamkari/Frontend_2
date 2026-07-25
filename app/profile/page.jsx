@@ -97,6 +97,7 @@ export default function ProfilePage() {
                 <div>
                   <span className="font-medium text-brown text-sm">{a.label || "Address"}{a.isDefault && " (Default)"}</span>
                   <p className="text-sm text-brown/60 mt-1">{a.line1}, {a.city}, {a.state} {a.pincode}</p>
+                  {a.phone && <p className="text-sm text-brown/60 mt-1">Phone: {a.phone}</p>}
                 </div>
                 <button onClick={() => deleteAddress(a.id)} className="text-sm text-red-500">Remove</button>
               </div>

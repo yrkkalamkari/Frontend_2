@@ -21,7 +21,7 @@ function CheckoutFlow() {
   const [selectedAddressId, setSelectedAddressId] = useState(null);
   const [step, setStep] = useState(0);
   const [showNewAddress, setShowNewAddress] = useState(false);
-  const [newAddress, setNewAddress] = useState({ label: "", line1: "", line2: "", city: "", state: "", pincode: "", isDefault: false });
+  const [newAddress, setNewAddress] = useState({ label: "", line1: "", line2: "", city: "", state: "", pincode: "", phone: "", isDefault: false });
   const [couponCode, setCouponCode] = useState(couponFromCart);
   const [discount, setDiscount] = useState(0);
   const [placing, setPlacing] = useState(false);
@@ -123,6 +123,7 @@ function CheckoutFlow() {
                 {a.isDefault && <span className="text-xs bg-gold/20 text-gold font-medium px-2 py-1 rounded-full">Default</span>}
               </div>
               <p className="text-sm text-brown/60 mt-1">{a.line1}, {a.line2 && `${a.line2}, `}{a.city}, {a.state} {a.pincode}</p>
+              {a.phone && <p className="text-sm text-brown/60 mt-1">Phone: {a.phone}</p>}
             </button>
           ))}
 
@@ -131,6 +132,7 @@ function CheckoutFlow() {
               <input placeholder="Label (Home/Office)" className="w-full px-3 py-2 rounded-lg border border-brown/10 text-sm" onChange={(e) => setNewAddress({ ...newAddress, label: e.target.value })} />
               <input placeholder="Address line 1" className="w-full px-3 py-2 rounded-lg border border-brown/10 text-sm" onChange={(e) => setNewAddress({ ...newAddress, line1: e.target.value })} />
               <input placeholder="Address line 2 (optional)" className="w-full px-3 py-2 rounded-lg border border-brown/10 text-sm" onChange={(e) => setNewAddress({ ...newAddress, line2: e.target.value })} />
+              <input placeholder="Phone number" className="w-full px-3 py-2 rounded-lg border border-brown/10 text-sm" onChange={(e) => setNewAddress({ ...newAddress, phone: e.target.value })} />
               <div className="grid grid-cols-3 gap-3">
                 <input placeholder="City" className="px-3 py-2 rounded-lg border border-brown/10 text-sm" onChange={(e) => setNewAddress({ ...newAddress, city: e.target.value })} />
                 <input placeholder="State" className="px-3 py-2 rounded-lg border border-brown/10 text-sm" onChange={(e) => setNewAddress({ ...newAddress, state: e.target.value })} />
