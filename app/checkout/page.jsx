@@ -8,7 +8,7 @@ import { useAddresses, invalidateOrders } from "@/lib/hooks";
 import { formatINR, effectivePrice } from "@/lib/format";
 import EmptyState from "@/components/EmptyState";
 
-const STEPS = ["Address", "Review", "Payment"];
+const STEPS = ["Address", "Review", "Confirm"];
 
 function CheckoutFlow() {
   const { user } = useAuth();
@@ -21,12 +21,55 @@ function CheckoutFlow() {
   const [selectedAddressId, setSelectedAddressId] = useState(null);
   const [step, setStep] = useState(0);
   const [showNewAddress, setShowNewAddress] = useState(false);
+  const [editingAddressId, setEditingAddressId] = useState(null);
   const [newAddress, setNewAddress] = useState({ label: "", line1: "", line2: "", city: "", state: "", pincode: "", phone: "", isDefault: false });
+  const [formErrors, setFormErrors] = useState({});
   const [couponCode, setCouponCode] = useState(couponFromCart);
   const [discount, setDiscount] = useState(0);
   const [placing, setPlacing] = useState(false);
   const [error, setError] = useState("");
   const [placedOrder, setPlacedOrder] = useState(null);
+
+  const validateAddress = (address) => {
+    const errors = {};
+    if (!address.line1 || !address.line1.trim()) errors.line1 = "Address line 1 is required.";
+    if (!address.city || !address.city.trim()) errors.city = "City is required.";
+    if (!address.state || !address.state.trim()) errors.state = "State is required.";
+    if (!address.pincode || !address.pincode.trim()) {
+      errors.pincode = "Pincode is required.";
+    } else if (!/^[0-9]{4,6}$/.test(address.pincode.trim())) {
+      errors.pincode = "Enter a valid pincode.";
+    }
+    if (address.phone && address.phone.trim().length > 0 && !/^[0-9]{7,15}$/.test(address.phone.trim())) {
+      errors.phone = "Enter a valid phone number.";
+    }
+    return errors;
+  };
+
+  const canSaveAddress = Object.keys(formErrors).length === 0 && newAddress.line1.trim() && newAddress.city.trim() && newAddress.state.trim() && newAddress.pincode.trim();
+
+  const startEditingAddress = (address) => {
+    setEditingAddressId(address.id);
+    setShowNewAddress(true);
+    setNewAddress({
+      label: address.label || "",
+      line1: address.line1 || "",
+      line2: address.line2 || "",
+      city: address.city || "",
+      state: address.state || "",
+      pincode: address.pincode || "",
+      phone: address.phone || "",
+      isDefault: address.isDefault || false,
+    });
+    setFormErrors({});
+  };
+
+  const resetAddressForm = () => {
+    setEditingAddressId(null);
+    setShowNewAddress(false);
+    setNewAddress({ label: "", line1: "", line2: "", city: "", state: "", pincode: "", phone: "", isDefault: false });
+    setFormErrors({});
+  };
 
   useEffect(() => {
     if (addresses.length > 0 && !selectedAddressId) {
@@ -41,10 +84,33 @@ function CheckoutFlow() {
     }
   }, [couponFromCart, cartTotal]);
 
+  useEffect(() => {
+    setFormErrors(validateAddress(newAddress));
+  }, [newAddress]);
+
   if (!user) return <EmptyState icon="🔒" title="Sign in to checkout" ctaLabel="Sign in" ctaHref="/profile" />;
   if (cart.length === 0 && !placedOrder) return <EmptyState icon="🛒" title="Your cart is empty" ctaLabel="Shop now" ctaHref="/products" />;
 
   async function saveNewAddress() {
+    const errors = validateAddress(newAddress);
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      return;
+    }
+    setError("");
+
+    if (editingAddressId) {
+      try {
+        const updated = await api.updateAddress(editingAddressId, newAddress);
+        mutateAddresses(addresses.map((a) => (a.id === editingAddressId ? updated : a)), false);
+        setSelectedAddressId(editingAddressId);
+        resetAddressForm();
+      } catch (err) {
+        setError(err.message);
+      }
+      return;
+    }
+
     setShowNewAddress(false);
     const tempId = `temp-${Date.now()}`;
     const optimistic = { ...newAddress, id: tempId };
@@ -54,6 +120,7 @@ function CheckoutFlow() {
       const created = await api.addAddress(newAddress);
       mutateAddresses([created, ...addresses], false);
       setSelectedAddressId(created.id);
+      resetAddressForm();
     } catch (err) {
       mutateAddresses(addresses, false); // roll back
       setError(err.message);
@@ -61,6 +128,10 @@ function CheckoutFlow() {
   }
 
   async function placeOrder() {
+    if (!selectedAddressId) {
+      setError("Please select or add a delivery address before placing your order.");
+      return;
+    }
     setError("");
     setPlacing(true);
     try {
@@ -113,52 +184,146 @@ function CheckoutFlow() {
         <div className="space-y-4">
           <h2 className="font-display text-xl text-brown">Choose delivery address</h2>
           {addresses.map((a) => (
-            <button
-              key={a.id}
-              onClick={() => setSelectedAddressId(a.id)}
-              className={`w-full text-left p-5 rounded-xl2 border-2 transition-colors ${selectedAddressId === a.id ? "border-gold bg-beige" : "border-brown/10 bg-white"}`}
-            >
-              <div className="flex justify-between">
-                <span className="font-semibold text-brown">{a.label || "Address"}</span>
-                {a.isDefault && <span className="text-xs bg-gold/20 text-gold font-medium px-2 py-1 rounded-full">Default</span>}
+            <div key={a.id} className={`w-full p-5 rounded-xl2 border-2 transition-colors ${selectedAddressId === a.id ? "border-gold bg-beige" : "border-brown/10 bg-white"}`}>
+              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                <div>
+                  <div className="flex items-center gap-3">
+                    <span className="font-semibold text-brown">{a.label || "Address"}</span>
+                    {a.isDefault && <span className="text-xs bg-gold/20 text-gold font-medium px-2 py-1 rounded-full">Default</span>}
+                  </div>
+                  <p className="text-sm text-brown/60 mt-2">{a.line1}, {a.line2 && `${a.line2}, `}{a.city}, {a.state} {a.pincode}</p>
+                  {a.phone && <p className="text-sm text-brown/60 mt-1">Phone: {a.phone}</p>}
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setSelectedAddressId(a.id)}
+                    className={`rounded-lg px-3 py-2 text-sm font-semibold ${selectedAddressId === a.id ? "bg-brown text-cream" : "bg-beige text-brown"}`}
+                  >
+                    {selectedAddressId === a.id ? "Selected" : "Select"}
+                  </button>
+                  <button
+                    onClick={() => startEditingAddress(a)}
+                    className="rounded-lg border border-brown/10 px-3 py-2 text-sm text-brown hover:bg-brown/5 transition-colors"
+                  >
+                    Edit
+                  </button>
+                </div>
               </div>
-              <p className="text-sm text-brown/60 mt-1">{a.line1}, {a.line2 && `${a.line2}, `}{a.city}, {a.state} {a.pincode}</p>
-              {a.phone && <p className="text-sm text-brown/60 mt-1">Phone: {a.phone}</p>}
-            </button>
+            </div>
           ))}
 
           {showNewAddress ? (
             <div className="p-5 rounded-xl2 border-2 border-brown/10 bg-white space-y-3">
-              <input placeholder="Label (Home/Office)" className="w-full px-3 py-2 rounded-lg border border-brown/10 text-sm" onChange={(e) => setNewAddress({ ...newAddress, label: e.target.value })} />
-              <input placeholder="Address line 1" className="w-full px-3 py-2 rounded-lg border border-brown/10 text-sm" onChange={(e) => setNewAddress({ ...newAddress, line1: e.target.value })} />
-              <input placeholder="Address line 2 (optional)" className="w-full px-3 py-2 rounded-lg border border-brown/10 text-sm" onChange={(e) => setNewAddress({ ...newAddress, line2: e.target.value })} />
-              <input placeholder="Phone number" className="w-full px-3 py-2 rounded-lg border border-brown/10 text-sm" onChange={(e) => setNewAddress({ ...newAddress, phone: e.target.value })} />
-              <div className="grid grid-cols-3 gap-3">
-                <input placeholder="City" className="px-3 py-2 rounded-lg border border-brown/10 text-sm" onChange={(e) => setNewAddress({ ...newAddress, city: e.target.value })} />
-                <input placeholder="State" className="px-3 py-2 rounded-lg border border-brown/10 text-sm" onChange={(e) => setNewAddress({ ...newAddress, state: e.target.value })} />
-                <input placeholder="Pincode" className="px-3 py-2 rounded-lg border border-brown/10 text-sm" onChange={(e) => setNewAddress({ ...newAddress, pincode: e.target.value })} />
+              <div className="grid gap-2">
+                <label className="text-sm text-brown/80">
+                  Label (optional)
+                  <input
+                    value={newAddress.label}
+                    placeholder="Home / Office"
+                    className="w-full px-3 py-2 rounded-lg border border-brown/10 text-sm mt-1"
+                    onChange={(e) => setNewAddress({ ...newAddress, label: e.target.value })}
+                  />
+                </label>
+                <label className="text-sm text-brown/80">
+                  Address line 1 *
+                  <input
+                    value={newAddress.line1}
+                    placeholder="Address line 1"
+                    className="w-full px-3 py-2 rounded-lg border border-brown/10 text-sm mt-1"
+                    onChange={(e) => setNewAddress({ ...newAddress, line1: e.target.value })}
+                  />
+                  {formErrors.line1 && <p className="text-red-600 text-xs mt-1">{formErrors.line1}</p>}
+                </label>
+                <label className="text-sm text-brown/80">
+                  Address line 2
+                  <input
+                    value={newAddress.line2}
+                    placeholder="Address line 2 (optional)"
+                    className="w-full px-3 py-2 rounded-lg border border-brown/10 text-sm mt-1"
+                    onChange={(e) => setNewAddress({ ...newAddress, line2: e.target.value })}
+                  />
+                </label>
+                <label className="text-sm text-brown/80">
+                  City *
+                  <input
+                    value={newAddress.city}
+                    placeholder="City"
+                    className="w-full px-3 py-2 rounded-lg border border-brown/10 text-sm mt-1"
+                    onChange={(e) => setNewAddress({ ...newAddress, city: e.target.value })}
+                  />
+                  {formErrors.city && <p className="text-red-600 text-xs mt-1">{formErrors.city}</p>}
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  <label className="text-sm text-brown/80">
+                    State *
+                    <input
+                      value={newAddress.state}
+                      placeholder="State"
+                      className="w-full px-3 py-2 rounded-lg border border-brown/10 text-sm mt-1"
+                      onChange={(e) => setNewAddress({ ...newAddress, state: e.target.value })}
+                    />
+                    {formErrors.state && <p className="text-red-600 text-xs mt-1">{formErrors.state}</p>}
+                  </label>
+                  <label className="text-sm text-brown/80">
+                    Pincode *
+                    <input
+                      value={newAddress.pincode}
+                      placeholder="Pincode"
+                      className="w-full px-3 py-2 rounded-lg border border-brown/10 text-sm mt-1"
+                      onChange={(e) => setNewAddress({ ...newAddress, pincode: e.target.value })}
+                    />
+                    {formErrors.pincode && <p className="text-red-600 text-xs mt-1">{formErrors.pincode}</p>}
+                  </label>
+                </div>
+                <label className="text-sm text-brown/80">
+                  Phone number
+                  <input
+                    value={newAddress.phone}
+                    placeholder="Phone number"
+                    className="w-full px-3 py-2 rounded-lg border border-brown/10 text-sm mt-1"
+                    onChange={(e) => setNewAddress({ ...newAddress, phone: e.target.value })}
+                  />
+                  {formErrors.phone && <p className="text-red-600 text-xs mt-1">{formErrors.phone}</p>}
+                </label>
               </div>
               <label className="flex items-center gap-2 text-sm text-brown/70">
-                <input type="checkbox" onChange={(e) => setNewAddress({ ...newAddress, isDefault: e.target.checked })} />
+                <input type="checkbox" checked={newAddress.isDefault} onChange={(e) => setNewAddress({ ...newAddress, isDefault: e.target.checked })} />
                 Set as default
               </label>
-              <button onClick={saveNewAddress} className="bg-brown text-cream px-5 py-2 rounded-lg text-sm font-semibold hover:bg-gold transition-colors">
-                Save address
-              </button>
+              <div className="flex gap-3">
+                <button onClick={resetAddressForm} className="flex-1 border border-brown/10 text-brown px-4 py-2 rounded-lg text-sm">
+                  Cancel
+                </button>
+                <button
+                  onClick={saveNewAddress}
+                  disabled={!canSaveAddress}
+                  className="flex-1 bg-brown text-cream px-4 py-2 rounded-lg text-sm font-semibold disabled:opacity-40 hover:bg-gold transition-colors"
+                >
+                  {editingAddressId ? "Update address" : "Save address"}
+                </button>
+              </div>
             </div>
           ) : (
             <button onClick={() => setShowNewAddress(true)} className="text-gold font-medium text-sm">
-              + Add new address
+              + Add or edit address
             </button>
           )}
 
-          <button
-            disabled={!selectedAddressId}
-            onClick={() => setStep(1)}
-            className="w-full mt-6 bg-brown text-cream py-4 rounded-xl2 font-semibold disabled:opacity-40 hover:bg-gold transition-colors"
-          >
-            Continue to review
-          </button>
+          <div className="flex flex-col gap-3">
+            <button
+              disabled={!selectedAddressId}
+              onClick={() => setStep(1)}
+              className="w-full bg-brown text-cream py-4 rounded-xl2 font-semibold disabled:opacity-40 hover:bg-gold transition-colors"
+            >
+              Continue to review
+            </button>
+            <button
+              onClick={() => router.push("/cart")}
+              className="w-full border border-brown/10 text-brown py-4 rounded-xl2 font-semibold hover:bg-brown/5 transition-colors"
+            >
+              Back to cart
+            </button>
+          </div>
         </div>
       )}
 
@@ -192,24 +357,30 @@ function CheckoutFlow() {
           </div>
           <div className="flex gap-3">
             <button onClick={() => setStep(0)} className="flex-1 border-2 border-brown text-brown py-3 rounded-xl2 font-semibold">Back</button>
-            <button onClick={() => setStep(2)} className="flex-1 bg-brown text-cream py-3 rounded-xl2 font-semibold hover:bg-gold transition-colors">Continue to payment</button>
+            <button onClick={() => setStep(2)} className="flex-1 bg-brown text-cream py-3 rounded-xl2 font-semibold hover:bg-gold transition-colors">Continue to confirm</button>
           </div>
         </div>
       )}
 
       {step === 2 && (
         <div className="space-y-4 text-center">
-          <h2 className="font-display text-xl text-brown">Payment</h2>
+          <h2 className="font-display text-xl text-brown">Confirm order</h2>
           <p className="text-brown/60 text-sm">
-            Wire up your payment gateway (e.g. Razorpay) here. For now, placing the order records it as unpaid — hook the gateway's success callback up to this button.
+            No payment is required right now. We will submit your order and show a confirmation message once it is placed.
           </p>
           {error && <p className="text-red-600 text-sm">{error}</p>}
           <button
+            onClick={() => setStep(1)}
+            className="w-full border-2 border-brown text-brown py-4 rounded-xl2 font-semibold hover:bg-brown/5 transition-colors"
+          >
+            Back to review
+          </button>
+          <button
             onClick={placeOrder}
             disabled={placing}
-            className="w-full bg-brown text-cream py-4 rounded-xl2 font-semibold hover:bg-gold transition-colors disabled:opacity-50"
+            className="w-full bg-brown text-cream py-4 rounded-xl2 font-semibold hover:bg-gold transition-colors disabled:opacity-50 mt-3"
           >
-            {placing ? "Placing order…" : `Place order — ${formatINR(cartTotal - discount)}`}
+            {placing ? "Placing order…" : `Submit order — ${formatINR(cartTotal - discount)}`}
           </button>
         </div>
       )}
